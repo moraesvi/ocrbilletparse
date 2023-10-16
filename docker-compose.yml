@@ -1,0 +1,86 @@
+version: '3.8'
+services:
+  rabbitmqbilletparse:
+    hostname: rabbitmqbilletparse
+    image: rabbitmq:3.8-management-alpine
+    ports:
+        - 5673:5672
+        - 15673:15672
+    environment:
+      - RABBITMQ_DEFAULT_USER = admin
+      - RABBITMQ_DEFAULT_PASS = password
+    healthcheck:
+      test: rabbitmq-diagnostics -q ping
+      interval: 5s
+      timeout: 15s
+      retries: 3
+    networks:
+      - ocrbilletparse_network
+
+  redis:
+    image: redis:6.2-alpine
+    ports:
+      - '6379:6379'
+    command: redis-server --save 20 1 --loglevel warning --requirepass eYVX7EwVmmxKPCDmwMtyKVge8oLd2t81
+    volumes: 
+      - redis:/data
+    networks:
+      - ocrbilletparse_network
+
+  ocrbilletparse.api:
+    image: ${DOCKER_REGISTRY-}ocrbilletparseapi
+    build:
+      context: .
+      dockerfile: OCRBilletParse.Api/Dockerfile
+    ports:
+      - "64702:80"
+    extra_hosts:
+      - host.docker.internal:host-gateway
+    depends_on:
+      rabbitmqbilletparse:
+        condition: service_healthy
+      ocrbilletparse.queue.api:
+       condition: service_started
+      ocrbilletparse.storage.api:
+       condition: service_started
+    networks:
+      - ocrbilletparse_network
+
+  ocrbilletparse.queue.api:
+    image: ${DOCKER_REGISTRY-}ocrbilletparsequeueapi
+    build:
+      context: .
+      dockerfile: Queue/OCRBilletParse.Queue.Api/Dockerfile
+    ports:
+      - "35278:80"
+    extra_hosts:
+      - host.docker.internal:host-gateway
+    depends_on:
+      - rabbitmqbilletparse
+      - redis
+    networks:
+      - ocrbilletparse_network
+
+  ocrbilletparse.storage.api:
+    image: ${DOCKER_REGISTRY-}ocrbilletparsestorageapi
+    build:
+      context: .
+      dockerfile: Storage/OCRBilletParse.Storage.Api/Dockerfile
+    ports:
+      - "9925:80"
+    extra_hosts:
+      - host.docker.internal:host-gateway
+    depends_on:
+      - rabbitmqbilletparse
+      - redis
+    networks:
+      - ocrbilletparse_network
+
+volumes:
+  redis:
+    driver: local
+
+networks:
+  ocrbilletparse_network:
+    external: false
+
