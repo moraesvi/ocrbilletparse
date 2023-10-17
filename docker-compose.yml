@@ -28,7 +28,7 @@ services:
       - ocrbilletparse_network
 
   ocrbilletparse.api:
-    image: ${DOCKER_REGISTRY-}ocrbilletparseapi
+    image: bomite/ocrbilletparse:ocrbilletparseapi
     build:
       context: .
       dockerfile: OCRBilletParse.Api/Dockerfile
@@ -47,7 +47,7 @@ services:
       - ocrbilletparse_network
 
   ocrbilletparse.queue.api:
-    image: ${DOCKER_REGISTRY-}ocrbilletparsequeueapi
+    image: bomite/ocrbilletparse:ocrbilletparsequeueapi
     build:
       context: .
       dockerfile: Queue/OCRBilletParse.Queue.Api/Dockerfile
@@ -62,7 +62,7 @@ services:
       - ocrbilletparse_network
 
   ocrbilletparse.storage.api:
-    image: ${DOCKER_REGISTRY-}ocrbilletparsestorageapi
+    image: bomite/ocrbilletparse:ocrbilletparsestorageapi
     build:
       context: .
       dockerfile: Storage/OCRBilletParse.Storage.Api/Dockerfile
