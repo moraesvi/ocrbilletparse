@@ -26,9 +26,22 @@ services:
       - redis:/data
     networks:
       - ocrbilletparse_network
-
+  mysql:
+    image: mysql:5.7
+    restart: always
+    environment:
+      MYSQL_DATABASE: 'db'
+      MYSQL_USER: 'user'
+      MYSQL_PASSWORD: 'p@ssw0rd'
+      MYSQL_ROOT_PASSWORD: 'p@ssw0rd'
+    ports:
+      - '3306:3306'
+    expose:
+      - '3306'
+    volumes:
+      - my-db:/var/lib/mysql
   ocrbilletparse.api:
-    image: bomite/ocrbilletparse:ocrbilletparseapi
+    image: ${DOCKER_REGISTRY-}ocrbilletparseapi
     build:
       context: .
       dockerfile: OCRBilletParse.Api/Dockerfile
@@ -47,7 +60,7 @@ services:
       - ocrbilletparse_network
 
   ocrbilletparse.queue.api:
-    image: bomite/ocrbilletparse:ocrbilletparsequeueapi
+    image: ${DOCKER_REGISTRY-}ocrbilletparsequeueapi
     build:
       context: .
       dockerfile: Queue/OCRBilletParse.Queue.Api/Dockerfile
@@ -62,7 +75,7 @@ services:
       - ocrbilletparse_network
 
   ocrbilletparse.storage.api:
-    image: bomite/ocrbilletparse:ocrbilletparsestorageapi
+    image: ${DOCKER_REGISTRY-}ocrbilletparsestorageapi
     build:
       context: .
       dockerfile: Storage/OCRBilletParse.Storage.Api/Dockerfile
